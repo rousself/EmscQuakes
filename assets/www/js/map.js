@@ -1,26 +1,22 @@
-var map,E_layer,dataE,lay;
+var lmap,E_layer,dataE,lay;
 var mov=[];
 function init() {
+
 if(typeof L == 'undefined') { setTimeout("init()",200); return; }
 //window.L_DISABLE_3D = true;
 $('#map').css('height', $('#footer').position().top-$('#map').position().top);
- map = new L.Map('map', {
-		//center: new L.LatLng(0,0/*51.505, -0.09*/,nowrap), 
-		//zoom: 2,
-		crs:L.CRS.EPSG3857 //L.CRS.EPSG4326 //L.CRS.EPSG3857
-		//,closePopupOnClick:false
+
+ lmap = new L.Map('map', {
+		crs:L.CRS.EPSG3857 
 		,worldCopyJump:true
-		//,inertia:true
-		//,maxBounds:[[-90,-180],[90,180]]
 	});
-	console.log( typeof map +'  '+map);
 	
-	map.setView([0, 0], 2);
+	lmap.setView([0, 0], 2);
 	layers(2);
 	
-	map.on('dragend', function(event) {
-		var bounds=map.getBounds();
-	//	var rect = L.rectangle(bounds, {color: 'blue', weight: 1}).addTo(map);
+	lmap.on('dragend', function(event) {
+		var bounds=lmap.getBounds();
+	//	var rect = L.rectangle(bounds, {color: 'blue', weight: 1}).addTo(lmap);
 
 		for (var j0 in mov) { mov[j0].mark.setLatLng(mov[j0].origlatlng); }
 		delete mov;
@@ -38,7 +34,7 @@ $('#map').css('height', $('#footer').position().top-$('#map').position().top);
 			}
 		}
 		
-		//map.fitBounds(map.getBounds());
+		//lmap.fitBounds(lmap.getBounds());
 	});
 	
 }
@@ -47,7 +43,7 @@ function layers(n) {
 				,{url:'http://otile{s}.mqcdn.com/tiles/1.0.0/osm/{z}/{x}/{y}.jpg', attr:'Tiles Courtesy of <a href="http://www.mapquest.com/" target="_blank">MapQuest</a><img src="http://developer.mapquest.com/content/osm/mq_logo.png"/>',sub:[1,2,3,4],shema:'xyz'}
 				,{url:'http://static{s}.emsc-csem.org/Images/TMS/{z}/{x}/{y}.png',attr: 'Map data © EMSC',sub:[1,2,3],shema:'xyz'}
 				];
-	if(typeof E_layer!='undefined') map.removeLayer(E_layer);
+	if(typeof E_layer!='undefined') lmap.removeLayer(E_layer);
 	
 	E_layer=new L.tileLayer( tileUrl[n].url, {
 			maxZoom: 9, minZoom:1,
@@ -56,7 +52,7 @@ function layers(n) {
 			scheme: tileUrl[n].shema   //'xyz' //'tms'
 			,continuousWorld: false
 	});
-	E_layer.addTo(map);
+	E_layer.addTo(lmap);
 }	
 
 function loadData() {
@@ -78,11 +74,12 @@ function loadData() {
 			}
 		}
 	
-	}).addTo(map);
+	}).addTo(lmap);
 }
 
+
 try {
-if(typeof map == 'undefined') init(); 
-//loadData();
+	if(typeof lmap == 'undefined') init(); 
+	loadData();
 }
-catch(e) {console.log('error '+e.emssage); }
+catch(e) { console.log('error '+e.emssage); }

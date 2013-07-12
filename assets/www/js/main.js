@@ -204,6 +204,31 @@ var app = {
 	
 	
 	
+	find_it: function (id) {
+		for (var i = 0; i<this._quakes.length; i++) { 
+			if(this._quakes[i].id == id) return i;
+		}
+	},
+	get_it: function(id) {
+		return this._quakes[this.find_it(id)];
+	},
+	get_it_params: function(id,param) {
+		return this.get_it(id)[param];
+	},	
+	map_it: function (id) {
+		if(typeof lmap == 'undefined') { setTimeout("app.map_it("+id+")",200); return; }
+		var obj=this.get_it(id);
+		lmap.setView([obj.location.lat, obj.location.lon], 8);
+	},
+	
+	initQuestio: function() {
+		this._questio={};
+	},
+	setQuestio: function(name,value) {
+		console.log('Questio: '+name+' ** '+value); 
+		this._questio[name]=value;
+	},
+	
 	
 	createDb: function(tx) {
 		//tx.executeSql('DROP TABLE IF EXISTS emsc');
@@ -250,15 +275,20 @@ var app = {
 			
 	},
 	
+	createLinePlus: function(obj) {
+		return '<li class="resRowP ep_'+obj.id+'">'+
+			'<div><span class="icmap"></span>Map it</div>'+'<div><span class="icfelt"></span>I Felt it</div>'+'<div><span class="icdetails"></span>Details</div>'+'<div><span class="iccam"></span>Share pics</div>'
+				'</li>';
+	},
 	createLine: function(obj) {
-		return '<li class="resRow"><a href="'+obj.url + '" class="handle">' +
+		return '<li class="resRow e_'+obj.id+'"><a href="javascript:ResRowClick('+obj.id+')" class="handle">' + //'+obj.url + '
 				 '<span class="mag">'+obj.magnitude.mag.toFixed(1)+'</span>' + 
 						'<strong>' + obj.flynn_region + '</strong><span class="resDetail">'+obj.time_str+'</span>'+
 						'<span>Depth: '+obj.depth.depth+' Km</span>'+'</a></li>';
 	},
 	createList: function() {
 		for (var i = 0; i<this._quakes.length; i++) { 
-			$('#quakesList').append(this.createLine(this._quakes[i]));
+			$('#quakesList').append(this.createLine(this._quakes[i])+this.createLinePlus(this._quakes[i]));
 		}
 	},
 	getGeoJson: function() {
@@ -364,33 +394,6 @@ function registerMyAppPush(key) {
 		});	
 }
 
-
-
- var  isAndroid = (/android/gi).test(navigator.appVersion);
- 
- document.addEventListener("deviceready", onDeviceReady2, true);
- function onDeviceReady() { console.log('listener begin'); app.initapp();}
- if(!isAndroid) window.onload=onDeviceReady2;
- function onDeviceReady2() { 
-	console.log('window begin'); 
-	app.initapp(); 
-	Push();
-	
- }
-
- document.addEventListener("backbutton", function(e) {
-	if($('.visible').attr('id')=='home') {	
-		// call this to get a new token each time. don't call it to reuse existing token.
-		//pushNotification.unregister(successPushH, errorPushH);
-		e.preventDefault();
-		navigator.app.exitApp();
-	}	
-	else navigator.app.backHistory();
- },false);
- 
- 
- 
- 
  
  var pushNotification;
  function Push() {
@@ -399,7 +402,7 @@ function registerMyAppPush(key) {
 		pushNotification = window.plugins.pushNotification;
 		if (device.platform == 'android' || device.platform == 'Android') {
 			$("#app-status-ul").append('<li>registering android</li>');
-			pushNotification.register(successPushH , errorPushH , {"senderID":EmscConfig.android.senderID,"ecb":"onNotificationGCM","badge":"true","sound":"true","alert":"true"});		// required!
+			pushNotification.register(successPushH , errorPushH , {"senderID":EmscConfig.android.senderID,"ecb":"onNotificationGCM"});		// required!
 		} else {
 			$("#app-status-ul").append('<li>registering iOS</li>');
 			pushNotification.register(tokenHandler, errorPushH, {"badge":"true","sound":"true","alert":"true","ecb":"onNotificationAPN"});	// required!
@@ -487,6 +490,76 @@ function onNotificationGCM(e) {
 	}
 }
 
+ 
+ 
+ 
+ function ResRowClick(id) {
+	$('.resRowsel').removeClass('resRowsel'); $('.resRowP').hide();
+	$('.e_'+id).addClass('resRowsel');
+	$('.ep_'+id).slideDown('slow',function(){
+		//$('.icmap').parent().click(function(e) { e.stopPropagation(); console.log('map it '+id);});
+		 $(this).children().click(function(e) {  
+			e.stopPropagation(); 
+			//console.log(e); console.log(e.target.id); 
+			//console.log($(this).children().attr('class'));
+			//var obj=app.find_it(id);
+			switch($(this).children().attr('class')) {
+				case 'icmap' :
+					$("a[href$='Emap']").trigger('click'); app.map_it(id); break;
+				case 'icdetails' :
+					window.location=app.get_it_params(id,'url'); /*obj.url;*/ break;
+				case 'icfelt':
+					 app.initQuestio(); app.setQuestio('evid',id); spriteFeltit(); $('#FeltitLnk').trigger('click');
+						break;	
+				case 'iccam':
+					Allcam(); $('#fullcam').fadeIn(1000); $('#fullcam').css('background','rgba(0,0,0,0.8)');//.css('opacity','0.6');
+						break;
+			}
+		});
+	}).click(function(){ $(this).slideUp(); $('.resRowsel').removeClass('resRowsel');  }); 
+ }
+ function spriteFeltit() { console.log('ln '+$('#thumb').children().length); console.log($('#thumb').children());
+	if($('#thumb').children().length > 0) return;
+	var z=0;
+	for(var i=1;i<=12;i++) { $('#thumb').append('<span class="vignt" id="v'+i+'" style="background-position:'+z+'px 0;"/>'); z-=240;  }
+	$('.vignt').each(function(){ 
+		$(this).click(function(e){ 
+			app.setQuestio('intensity',e.target.id); continue_questio();
+		});
+	});	
+ }
+ function questio_end() {
+	app.setQuestio('email',$('#ques_email').val());  app.setQuestio('comments',$('#ques_comments').val()); 
+	$('#Feltit').fadeOut(1000, function() { $('#comment').addClass('hidden');  $('.thumb').slideDown(); $(this).removeClass('visible').addClass('hidden').css('display',''); });
+	$('#home .wrapper').css("left","0"); $('#home').fadeIn(1000, function() { $(this).addClass('visible').removeClass('hidden').css('display',''); }); 
+	//$('.thumb').show().;   
+ }
+ function continue_questio() {
+	$('.thumb').slideUp();	$('#comment').removeClass('hidden');	$('#comment').slideDown();
+ }
+ 
+ 
+ function Allcam() {
+	if($('#allcams').children().length > 0) return;
+	$("head").append('<script src="js/capture.js" />'); 
+	$('#allcams').append('<div><span class="iccam0"></span>Take Picture</div> <div><span class="iccam2"></span>Take Video</div> <div><span class="iccam3"></span>From Gallery</div> <div><span class="iccam4"></span>From Photos</div>');
+	$('#fullcam').click(function(e) {$(this).fadeOut(1000); });
+	$('#allcams div').each(function(){ 
+		$(this).click(function(e){ 
+			e.stopPropagation(); 
+			switch($(this).children().attr('class')) {
+				case 'iccam0':
+					Picture(1); break;
+				case 'iccam2':
+					captureVideo(); break;
+				case 'iccam3':
+					Picture(0); break;	
+				case 'iccam4':
+					Picture(2); break;		
+			}
+		});
+	});	
+ }
  
  
  function FireEvent(name,element) {
