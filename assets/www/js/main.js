@@ -506,7 +506,7 @@ function onNotificationGCM(e) {
 			//var obj=app.find_it(id);
 			switch($(this).children().attr('class')) {
 				case 'icmap' :
-					$("a[href$='Emap']").trigger('click'); app.map_it(id); break;
+					$("a[href$='Emap']").trigger('click',function() { app.map_it(id); });  break;
 				case 'icdetails' :
 					window.location=app.get_it_params(id,'url'); /*obj.url;*/ break;
 				case 'icfelt':

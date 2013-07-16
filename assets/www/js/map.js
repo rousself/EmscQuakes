@@ -4,7 +4,7 @@ function init() {
 
 if(typeof L == 'undefined') { setTimeout("init()",200); return; }
 //window.L_DISABLE_3D = true;
-$('#map').css('height', $('#footer').position().top-$('#map').position().top);
+//$('#map').css('height', $('#footer').position().top-$('#map').position().top);
 
  lmap = new L.Map('map', {
 		crs:L.CRS.EPSG3857 
@@ -15,7 +15,7 @@ $('#map').css('height', $('#footer').position().top-$('#map').position().top);
 	layers(2);
 	
 	lmap.on("popupopen", function(evt){ currentPopup = evt.popup});
-	lmap.on('dragend', function(event) {
+	lmap.on('dragend', function(event) { console.log('map drag end');
 		var bounds=lmap.getBounds();
 	//	var rect = L.rectangle(bounds, {color: 'blue', weight: 1}).addTo(lmap);
 

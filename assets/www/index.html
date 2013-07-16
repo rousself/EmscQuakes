@@ -43,29 +43,23 @@
 		 	
 		
      $(document).ready(function(){
-		$("#header").append('<a href="home" id="returnB" class="header-button button slide hidden">Back</a>');
+		//$("#header").append('<a href="home" id="returnB" class="header-button button slide hidden">Back</a>');
 		
-		$(".slide").click(function(){
-			/*var url = $(this).attr("href");
-			var currentP=$('.visible').attr('id');	
-			$("#returnB").attr("href",currentP); 
-			$(".visible div").not('.noslide').animate({"left": "-=1500px"}, 1000,"linear", function(){ $('#'+currentP).removeClass('visible').addClass('hidden');  });
-			//console.log('current **'+currentP+' url ** '+url);
-
-			$("#"+url).removeClass('hidden').addClass('visible');
-			$("#"+url+" div").not('.noslide').css('left',($(window).width())+"px").animate({"left": "0px"}, 1000,"linear");
-			if(url=='home') $("#returnB").addClass("hidden");
-			else $("#returnB").removeClass("hidden");
-			*/
-			//console.log('href '+$("#returnB").attr("href"));
+		$(".slide").click(function(e,a){  
+			
+			var callback=function() { };
 			var url=$(this).attr("href");
+			if( $('.visible').attr('id') == url) return false; /* on est deja dessus */
 			if(url=='Emap') {
 				if(!isloaded['Emap']) { loadCss('css/leaflet.min.css');  loadingJS("js/leaflet_0.5.1.js");  loadingJS("js/map.js?"+(new Date()).getTime()); isloaded['Emap']=true;	}
-				else resetMap();
+				//else resetMap();
+				
+				if(typeof a =='undefined') callback=function() { /*callback.apply(arguments);*/ resetMap(); };
+				else callback=a;
 			}	
 			else if(url=="camera" && !isloaded['camera'] ) { $("head").append('<script src="js/capture.js" />'); isloaded['camera']=true;}
 		
-			slideTo(url);
+			slideTo(url, callback);
 			return false;
 		});
 		
@@ -74,11 +68,15 @@
 			$('.gray').removeClass('gray');	$('.footiconsel').removeClass('footiconsel');
 			$(this).children().addClass('footiconsel').children().addClass('gray');
 		});
-		function slideTo(url) {
-			var currentP=$('.visible').attr('id');	
-			$(".visible div").not('.noslide').animate({"left": "-=1500px"}, 1000,"linear", function(){ $('#'+currentP).removeClass('visible').addClass('hidden');  });
+		function slideTo(url,callback) {
+			var currentP=$('.visible').attr('id');	 //not('.noslide')
+			//$(".visible > div").animate({"left": "-=1500px"}, 1000,"linear", function(){ $('#'+currentP).removeClass('visible').addClass('hidden');  });
+			$(".visible .header2").animate({"left": "-="+($(window).width())+"px"}, 1000,"linear");
+			$(".visible .wrapper").animate({"left": "-="+($(window).width())+"px"}, 1000,"linear", function(){ $('#'+currentP).removeClass('visible').addClass('hidden');  });
 			$("#"+url).removeClass('hidden').addClass('visible');
-			$("#"+url+" div").not('.noslide').css('left',($(window).width())+"px").animate({"left": "0px"}, 1000,"linear");
+			$("#"+url+" .header2").css('left',($(window).width())+"px").animate({"left": "0px"}, 1000,"linear");
+			$("#"+url+" .wrapper").css('left',($(window).width())+"px").animate({"left": "0px"}, 1000,"linear" ,function(){ callback(); });
+			//$("#"+url+" > div").css('left',($(window).width())+"px").animate({"left": "0px"}, 1000,"linear" ,function(){  console.log('end');  callback();});
 		}
 		function loadCss(url) {
 			if (document.createStyleSheet) document.createStyleSheet(url);
@@ -105,7 +103,7 @@
 		</div>
 		
 		<div class="wrapper">
-			<div id="app-status-div">
+			<div id="app-status-div" style="display:none;">
 				<ul id="app-status-ul">	<!-- <li>Cordova PushNotification Plugin Demo</li> --> 	</ul>
 			</div>
 			<ul id="quakesList" class="icon-list"></ul>
@@ -131,7 +129,7 @@
 	<div id="Emap" class="hidden">
 		<div class="header2"><h2>Map</h2></div>
 		<div class="wrapper">
-			<div id="map"></div>
+			<div id="map" style="position:relative; height:100%;"></div>
 		</div>
 	</div>
 	
