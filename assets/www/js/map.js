@@ -11,9 +11,10 @@ $('#map').css('height', $('#footer').position().top-$('#map').position().top);
 		,worldCopyJump:true
 	});
 	
-	lmap.setView([0, 0], 2);
+	resetMap();
 	layers(2);
 	
+	lmap.on("popupopen", function(evt){ currentPopup = evt.popup});
 	lmap.on('dragend', function(event) {
 		var bounds=lmap.getBounds();
 	//	var rect = L.rectangle(bounds, {color: 'blue', weight: 1}).addTo(lmap);
@@ -54,8 +55,22 @@ function layers(n) {
 	});
 	E_layer.addTo(lmap);
 }	
+function resetMap() {
+	if (typeof currentPopup !='undefined' &&  currentPopup != null) { currentPopup._close(); delete currentPopup; }
+	lmap.setView([0, 0], 2);
+}
+
+function markerById(id) {
+	for(var i in dataE) { 
+		if(dataE[i].id==id) return dataE[i].marker;
+	}
+}
+function openPopup(id) {
+	var m=markerById(id); m.openPopup();
+}
 
 function loadData() {
+	if(typeof lmap == 'undefined') { setTimeout("loadData()",200); return; }
 	dataE=app.getGeoJson(); 
 	lay=L.geoJson(dataE, {
 		pointToLayer: function (feature, latlng) {
@@ -78,8 +93,9 @@ function loadData() {
 }
 
 
+
 try {
 	if(typeof lmap == 'undefined') init(); 
 	loadData();
 }
-catch(e) { console.log('error '+e.emssage); }
+catch(e) { console.log('error '+e.message); }

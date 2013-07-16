@@ -59,9 +59,11 @@
 			*/
 			//console.log('href '+$("#returnB").attr("href"));
 			var url=$(this).attr("href");
-			
-			if(url=='Emap' && !isloaded['Emap']) { loadCss('css/leaflet.min.css');  loadingJS("js/leaflet_0.5.1.js");  loadingJS("js/map.js?"+(new Date()).getTime()); isloaded['Emap']=true;	}
-			else if(url=="camera" && !isloaded['camera'] ) { $("head").append('<script src="js/capture.js" />'); isloaded['camera']=true; }
+			if(url=='Emap') {
+				if(!isloaded['Emap']) { loadCss('css/leaflet.min.css');  loadingJS("js/leaflet_0.5.1.js");  loadingJS("js/map.js?"+(new Date()).getTime()); isloaded['Emap']=true;	}
+				else resetMap();
+			}	
+			else if(url=="camera" && !isloaded['camera'] ) { $("head").append('<script src="js/capture.js" />'); isloaded['camera']=true;}
 		
 			slideTo(url);
 			return false;
@@ -99,7 +101,7 @@
 	<div id="home" class="visible">
 		<div class="header2">
 			<h2>Latest earthquakes</h2>
-			<a href="camera" class="change-pic-btn slide" > Cam </a>
+			<!-- <a href="camera" class="change-pic-btn slide" > Cam </a> -->
 		</div>
 		
 		<div class="wrapper">
@@ -140,11 +142,11 @@
 		<div class="wrapper">
 			<p class="thumb" style="text-align:center;padding-top:10px;font-weight:bold;">Please choose how you felt the earthquake</p>
 			<p id="thumb" class="thumb"></p>
-			<!-- <span class="vignt v1"></span><span class="vignt v2"></span><span class="vignt v1"></span> -->
+			
 			<p id="comment" class="hidden">
-				<br/>Email (optional)<br/>
+				<label for="ques_mail">Email (optional)</label>
 				<input type="email" id="ques_email">
-				<br/>Do you have any other comments about the effects of the earthquake that might be useful?<br/>
+				<label for="ques_comments">Do you have any other comments about the effects of the earthquake that might be useful?</label>
 				<textarea id="ques_comments" cols="60" rows="5" style="width:90%;"></textarea><br/>
 				<input type="button" value="Finish" onclick="questio_end()"/>
 			</p>

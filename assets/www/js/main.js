@@ -218,7 +218,7 @@ var app = {
 	map_it: function (id) {
 		if(typeof lmap == 'undefined') { setTimeout("app.map_it("+id+")",200); return; }
 		var obj=this.get_it(id);
-		lmap.setView([obj.location.lat, obj.location.lon], 8);
+		lmap.setView([obj.location.lat, obj.location.lon], 8); openPopup(id); 
 	},
 	
 	initQuestio: function() {
@@ -298,7 +298,8 @@ var app = {
 				type:"Feature",
 				geometry:{type:"Point",coordinates:[this._quakes[i].location.lon,this._quakes[i].location.lat]},
 				properties:{mag:this._quakes[i].magnitude.mag.toFixed(1),type:"earthquake",popupContent: this.createLine(this._quakes[i]) },
-				geojsonMarkerOptions:{radius: (this._quakes[i].magnitude.mag.toFixed(1)*2), fillColor: color, color: color, opacity: 0.7, fillOpacity: 0.6 }
+				geojsonMarkerOptions:{radius: (this._quakes[i].magnitude.mag.toFixed(1)*2), fillColor: color, color: color, opacity: 0.7, fillOpacity: 0.6 },
+				id: this._quakes[i].id
 			};	
 			Arr.push(obj);
 		}
