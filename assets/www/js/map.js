@@ -6,13 +6,19 @@ if(typeof L == 'undefined') { setTimeout("init()",200); return; }
 //window.L_DISABLE_3D = true;
 //$('#map').css('height', $('#footer').position().top-$('#map').position().top);
 
+var l2=getLayer(2), l1=getLayer(1), l0=getLayer(0);
+
+
  lmap = new L.Map('map', {
 		crs:L.CRS.EPSG3857 
 		,worldCopyJump:true
+		,layers: [l2]
 	});
 	
+	L.control.layers({"EMSC Map":l2,"Street Map":l1,"Aerial Map":l0}).addTo(lmap);
+
 	resetMap();
-	layers(2);
+	//layers(2);
 	
 	lmap.on("popupopen", function(evt){ currentPopup = evt.popup});
 	lmap.on('dragend', function(event) { console.log('map drag end');
@@ -39,12 +45,12 @@ if(typeof L == 'undefined') { setTimeout("init()",200); return; }
 	});
 	
 }
-function layers(n) { 
+function getLayer(n) {
 	var tileUrl=[{url:'http://mtile0{s}.mqcdn.com/tiles/1.0.0/vy/sat/{z}/{x}/{y}.png',attr: 'Tiles Courtesy of <a href="http://www.mapquest.com/" target="_blank">MapQuest</a><img src="http://developer.mapquest.com/content/osm/mq_logo.png"/>',sub:[1,2,3,4],shema:'xyz'} /**/
 				,{url:'http://otile{s}.mqcdn.com/tiles/1.0.0/osm/{z}/{x}/{y}.jpg', attr:'Tiles Courtesy of <a href="http://www.mapquest.com/" target="_blank">MapQuest</a><img src="http://developer.mapquest.com/content/osm/mq_logo.png"/>',sub:[1,2,3,4],shema:'xyz'}
 				,{url:'http://static{s}.emsc-csem.org/Images/TMS/{z}/{x}/{y}.png',attr: 'Map data © EMSC',sub:[1,2,3],shema:'xyz'}
 				];
-	if(typeof E_layer!='undefined') lmap.removeLayer(E_layer);
+	//if(typeof E_layer!='undefined') lmap.removeLayer(E_layer);
 	
 	E_layer=new L.tileLayer( tileUrl[n].url, {
 			maxZoom: 9, minZoom:1,
@@ -53,7 +59,11 @@ function layers(n) {
 			scheme: tileUrl[n].shema   //'xyz' //'tms'
 			,continuousWorld: false
 	});
-	E_layer.addTo(lmap);
+	return E_layer;
+}
+function layers(n) { 
+	//E_layer.addTo(lmap);
+	getLayer(n).addTo(lmap);
 }	
 function resetMap() {
 	if (typeof currentPopup !='undefined' &&  currentPopup != null) { currentPopup._close(); delete currentPopup; }
