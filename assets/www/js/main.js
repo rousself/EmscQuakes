@@ -2,6 +2,7 @@
 var app = {
 	_firstPassage: true,
 	_lastLastQuake: {id:0},
+	_lastQuake: {id:1},
 	_saveSettingsLabel: 'EMSC_App_Settings',
 	_settings: EmscConfig.settings,
 	_JsonUrl: EmscConfig.api.url,
@@ -88,7 +89,7 @@ var app = {
 		if(data.data_status=='NEW') { 
 			for(var i in quakes) {
 				if(quake.time >= quakes[i].time) {
-					if(i==0) { this._lastQuake=quake; this.setBadgeNew(); this.alertAllMethods(); }
+					if(i==0) { this._lastLastQuake=this._lastQuake; this._lastQuake=quake; this.setBadgeNew(); this.alertAllMethods(); }
 					else { this.setBadgeNew(); } // new but not the most recent //
 					break;
 				}
