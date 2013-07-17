@@ -83,7 +83,7 @@ var app = {
 	},
 	traitement_realtime:function (msg) {
 		//var self=this;
-		var data=JSON.parse(msg);  	var quake=data.data; console.log(msg);
+		var data=JSON.parse(msg);  	var quake=data.data; //console.log(msg);
 		var quakes=JSON.parse(this._storage.getItem('saveAllJson')); 
 		
 		if(data.data_status=='NEW') { 
@@ -94,8 +94,8 @@ var app = {
 					break;
 				}
 			} 
+			this.insertLine_Plus_Before(quake,quakes[i].id);
 			quakes.splice(i, 0, quake); //add to array
-			this.insertLine_Plus_Before(quake,i);
 		}		
 		else if(data.data_status=='UPDATE') { //alert('UPDATE');
 			for(var i in quakes) {
@@ -129,8 +129,6 @@ var app = {
 		
 	},
 	isNewQuake: function() {
-	 console.log('lastQuake '+JSON.stringify(this._lastQuake)); 
-	  console.log('LastlastQuake '+JSON.stringify(this._lastLastQuake)); 
 		if(this._lastQuake.id != this._lastLastQuake.id) return true;
 		else return false;
 	},
