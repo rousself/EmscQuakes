@@ -15,7 +15,7 @@
 	<script src="js/main.js"></script>
    <!-- <script src="js/iscroll.js"></script> -->
    <script>
-		//var console={log:function(txt) { $('.visible .wrapper').prepend('<p>'+txt+'</p>'); }};	
+		var console={log:function(txt) { $('.visible .wrapper').prepend('<p>'+txt+'</p>'); }};	
 		var isloaded=[]; isloaded['Emap']=isloaded['camera']=false;
 		
 		var  isAndroid = (/android/gi).test(navigator.appVersion);		
@@ -151,6 +151,13 @@
 			
 		</div>
 	</div>
+	
+	<div id="Esetting" class="hidden">
+		<div class="header2"><h2>Settings</h2></div>
+		<div class="wrapper">
+		</div>
+	</div>	
+	
 	
 
 	<div id="busy"/>Loading...</div>

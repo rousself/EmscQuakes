@@ -80,49 +80,56 @@ var app = {
 		*/
 
 	},
-	refresh_realtime_connect: function() {
+	traitement_realtime:function (msg) {
+		//var self=this;
+		var data=JSON.parse(msg);  	var quake=data.data; console.log(msg);
+		var quakes=JSON.parse(this._storage.getItem('saveAllJson')); 
 		
+		if(data.data_status=='NEW') { 
+			for(var i in quakes) {
+				if(quake.time >= quakes[i].time) {
+					if(i==0) { this._lastQuake=quake; this.setBadgeNew(); this.alertAllMethods(); }
+					else { this.setBadgeNew(); } // new but not the most recent //
+					break;
+				}
+			} 
+			quakes.splice(i, 0, quake); //add to array
+			this.insertLine_Plus_Before(quake,i);
+		}		
+		else if(data.data_status=='UPDATE') { //alert('UPDATE');
+			for(var i in quakes) {
+				if(quakes[i].id == quake.id) { quakes.splice(i, 1, quake); break; }
+			}	
+			if(quake.id == this._lastQuake.id) { this._lastQuake=quake;  this.alertScreen();}
+			this.replaceLine_Plus(quake);
+			
+		}
+		else if(data.data_status=='DELETE') { //alert('DEL');
+			for(var i in quakes) {
+				if(quakes[i].id == quake.id) { quakes.splice(i, 1); break; }
+			} 	
+			if(quake.id == this._lastQuake.id) { this._lastQuake=quakes[0]; this.alertScreen();  } // if it was the most recent //	
+			this.removeLine_Plus(quake);
+		}
+		
+		this._storage.setItem('saveAllJson',JSON.stringify(quakes));  
+	},
+	refresh_realtime_connect: function() {
 		this.socket = io.connect(EmscConfig.socket_io.url);
 		var self=this;
 		this.socket.on('connect', function () {
 			//alert('Etat : Connected'); /* ne pas mettre d'alert pour safari dans les functions */
 			//socket.on('disconnect', function() { /*self.log('Etat : Disconnected (Fermer)'); */});	
 			self.socket.on('message', function (msg) { 
-				//self.alert(JSON.stringify(msg)); 
-				var data=JSON.parse(msg);  	var quake=data.data; console.log(msg);
-				
-				//var quakes=JSON.parse(self._storage.getItem('saveAllJson'));  
-				
-				if(data.data_status=='NEW') { 
-					for(var i in quakes) {
-						if(quake.time >= quakes[i].time) {
-							if(i==0) { self._lastQuake=quake; self.setBadgeNew(); self.alertAllMethods(); }
-							else { self.setBadgeNew(); } // new but not the most recent //
-							break;
-						}
-					} 
-					quakes.splice(i, 0, quake); //add to array
-				}		
-				else if(data.data_status=='UPDATE') { //alert('UPDATE');
-					for(var i in quakes) {
-						if(quakes[i].id == quake.id) { quakes.splice(i, 1, quake); break; }
-					}	
-					if(quake.id == self._lastQuake.id) { self._lastQuake=quake;  self.alertScreen();}
-				}
-				else if(data.data_status=='DELETE') { //alert('DEL');
-					for(var i in quakes) {
-						if(quakes[i].id == quake.id) { quakes.splice(i, 1); break; }
-					} 	
-					if(quake.id == self._lastQuake.id) { self._lastQuake=quakes[0]; self.alertScreen();  } // if it was the most recent //	
-				}
-				//self._storage.setItem('saveAllJson',JSON.stringify(quakes));  
-	
+				self.traitement_realtime(msg);
 			});
 			
 		});	
 		
 	},
 	isNewQuake: function() {
+	 console.log('lastQuake '+JSON.stringify(this._lastQuake)); 
+	  console.log('LastlastQuake '+JSON.stringify(this._lastLastQuake)); 
 		if(this._lastQuake.id != this._lastLastQuake.id) return true;
 		else return false;
 	},
@@ -148,6 +155,9 @@ var app = {
 	},
 	alertScreen: function() {
 	},
+	
+	
+	
 	
 	getStorage: function() {
 		if(window.localStorage) this._storage=window.localStorage;
@@ -228,6 +238,13 @@ var app = {
 		console.log('Questio: '+name+' ** '+value); 
 		this._questio[name]=value;
 	},
+	setQuestioCoords: function(values) {
+		this._questio['coords']=values;
+	},
+	sendQuestio: function() {
+		//this.post_request(EmscConfig.questio.url,this._questio);
+		console.log(this._questio);
+	},
 	
 	
 	createDb: function(tx) {
@@ -275,6 +292,15 @@ var app = {
 			
 	},
 	
+	insertLine_Plus_Before: function(obj,id) {
+		$('.e_'+id).before(this.createLine(obj));  $('.e_'+id).before(this.createLinePlus(obj));
+	},
+	removeLine_Plus: function(obj) {
+		$('.e_'+obj.id).remove(); $('.ep_'+obj.id).remove();
+	},
+	replaceLine_Plus: function(obj) {
+		$('.e_'+obj.id).replaceWith(this.createLine(obj));  $('.ep_'+obj.id).replaceWith(this.createLinePlus(obj));
+	},
 	createLinePlus: function(obj) {
 		return '<li class="resRowP ep_'+obj.id+'">'+
 			'<div><span class="icmap"></span>Map it</div>'+'<div><span class="icfelt"></span>I Felt it</div>'+'<div><span class="icdetails"></span>Details</div>'+'<div><span class="iccam"></span>Share pics</div>'
@@ -336,10 +362,10 @@ var app = {
 		this.loadStoredSettings();
 		this.registerExtensionKey();
 		this._quakes=JSON.parse(this._storage.getItem('saveAllJson'));
-		//this.initDb();
-		//this.getAll();
-		if(! this._quakes ) { console.log('nothing in db'); this.refresh();}
-		else this.createList();
+		//this.initDb();		//this.getAll();
+		/*if(! this._quakes ) { console.log('nothing in db'); this.refresh();}
+		else this.createList();*/
+		this.refresh();
 	}
 	
 };	
@@ -457,7 +483,9 @@ function onNotificationGCM(e) {
 		case 'message':
 			// if this flag is set, this notification happened while we were in the foreground.
 			// you might want to play a sound to get the user's attention, throw up a dialog, etc.
-			if (e.foreground) {
+			if (e.foreground) { console.log('notify '+JSON.stringify(e.payload.message_data));
+				app.traitement_realtime(JSON.stringify(e.payload.message_data));
+			
 				$("#app-status-ul").append('<li>--INLINE NOTIFICATION--' + '</li>');
 
 				// if the notification contains a soundname, play it.
@@ -510,7 +538,7 @@ function onNotificationGCM(e) {
 				case 'icdetails' :
 					window.location=app.get_it_params(id,'url'); /*obj.url;*/ break;
 				case 'icfelt':
-					 app.initQuestio(); app.setQuestio('evid',id); spriteFeltit(); $('#FeltitLnk').trigger('click');
+					 app.initQuestio(); app.setQuestio('evid',id); init_questio_css(); spriteFeltit(); $('#FeltitLnk').trigger('click');
 						break;	
 				case 'iccam':
 					Allcam(); $('#fullcam').fadeIn(1000); $('#fullcam').css('background','rgba(0,0,0,0.8)');//.css('opacity','0.6');
@@ -519,25 +547,44 @@ function onNotificationGCM(e) {
 		});
 	}).click(function(){ $(this).slideUp(); $('.resRowsel').removeClass('resRowsel');  }); 
  }
- function spriteFeltit() { console.log('ln '+$('#thumb').children().length); console.log($('#thumb').children());
+ function init_questio_css() { $('#comment').removeClass('hidden').addClass('hidden'); $('.thumb').show(); }
+ function spriteFeltit() { //console.log('ln '+$('#thumb').children().length); console.log($('#thumb').children());
 	if($('#thumb').children().length > 0) return;
 	var z=0;
 	for(var i=1;i<=12;i++) { $('#thumb').append('<span class="vignt" id="v'+i+'" style="background-position:'+z+'px 0;"/>'); z-=240;  }
 	$('.vignt').each(function(){ 
 		$(this).click(function(e){ 
-			app.setQuestio('intensity',e.target.id); continue_questio();
+			app.setQuestio('intensity',e.target.id.substr(1)); continue_questio();
 		});
 	});	
  }
  function questio_end() {
-	app.setQuestio('email',$('#ques_email').val());  app.setQuestio('comments',$('#ques_comments').val()); 
+	app.setQuestio('email',$('#ques_email').val());  app.setQuestio('comments',$('#ques_comments').val()); app.sendQuestio();
 	$('#Feltit').fadeOut(1000, function() { $('#comment').addClass('hidden');  $('.thumb').slideDown(); $(this).removeClass('visible').addClass('hidden').css('display',''); });
 	$('#home .wrapper').css("left","0"); $('#home').fadeIn(1000, function() { $(this).addClass('visible').removeClass('hidden').css('display',''); }); 
 	//$('.thumb').show().;   
  }
  function continue_questio() {
+	localise(app.setQuestioCoords);
 	$('.thumb').slideUp();	$('#comment').removeClass('hidden');	$('#comment').slideDown();
  }
+ 
+ 
+ 
+ 
+ function localise(myCallback) {
+	if (!navigator.geolocation) { console.log("geolocation API not supported", "Error"); }
+	else {
+		console.log('launch pos');
+		navigator.geolocation.getCurrentPosition( myCallback ,
+			/*function(position) {
+				EmscConfig.video.coords=position;
+			}, */
+			function(error) {console.log('error position code: '+error.code+ '\n' +'message: ' + error.message + '\n');}
+		);
+	}
+}
+
  
  
  function Allcam() {

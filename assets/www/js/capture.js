@@ -56,15 +56,15 @@ function failTrans(error) {
 }
 
 
-
+function setCoordsVideo(position) { EmscConfig.video.coords=position; }
 // A button will call this function
 function captureVideo() {
-	localise();
+	localise(setCoordsVideo);
 	// Launch device video recording application,  allowing user to capture up to 2 video clips
 	navigator.device.capture.captureVideo(captureSuccess, captureError, {limit: 1});
 }
 function Picture(SourceType) {
-	localise();
+	localise(setCoordsVideo);
 	navigator.camera.getPicture(
             function(imageData) {  console.log('ok picture');
 				var npath = imageData.replace("file://localhost",'');
@@ -82,18 +82,6 @@ function Picture(SourceType) {
 				//sourceType: 1,      // 0:Photo Library, 1=Camera, 2=Saved Photo Album
 				//encodingType: 0 ,    // 0=JPG 1=PNG
 				//saveToPhotoAlbum: true,
-}
-function localise() {
-	if (!navigator.geolocation) { console.log("geolocation API not supported", "Error"); }
-	else {
-		console.log('launch pos');
-		navigator.geolocation.getCurrentPosition(
-			function(position) {
-				EmscConfig.video.coords=position;
-			}, 
-			function(error) {console.log('error position code: '+error.code+ '\n' +'message: ' + error.message + '\n');}
-		);
-	}
 }
 
 
