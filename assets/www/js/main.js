@@ -8,7 +8,11 @@ var app = {
 	_JsonUrl: EmscConfig.api.url,
 	_apikey: EmscConfig.api.key,
 	_addon_key: EmscConfig.api.addon_key,
-	_appdevice: {},//device,
+	_appdevice: {},
+	_coords:{lat:0,lon:0},
+	Location: function(position) {  
+		this._coords.lat=position.coords.latitude;  this._coords.lon=position.coords.longitude;
+	},
 	
 	getParams: function() {
 		return 'addon_key='+this._addon_key+'&'+this._apikey+'&min_mag='+this._settings.min_mag; 
@@ -42,48 +46,10 @@ var app = {
 	refresh: function() {	
 		var self=this;
 		this.post_request(this._JsonUrl,this.getParams(),function (req) { self.refresh_callback(req); });
-		/*
-		var self=this;
-		 //document.fireEvent("deviceready");
-		// FireEvent("deviceready",window);
-		 //FireEvent("deviceready",document);
-		$.support.cors = true;
-		try {
-		console.log('send http request');
-		$.ajax({
-					  url: self._JsonUrl,
-					  type: 'POST',
-                      data: self.getParams(),
-                      cache: false,
-					  crossDomain: true,
-                      dataType: 'json',
-                      success: function(req) { //alert(req);
-						var quakes=req.result; 
-						self._quakes=req.result; console.log('success '+req);
-						self.createList();
-						//self._storage.setItem('saveAllJson',JSON.stringify(quakes));  
-						self._lastLastQuake=self._lastQuake;
-						self._lastQuake=quakes[0]; //alert('normal '+JSON.stringify(quakes[0]));
-						//if(self.isNewQuake()) self.setBadgeNew(); 
-						if(! self._firstPassage) self.alertAllMethods();
-						else if(self._settings.screenAlert){ self.alertScreen(); }
-						self._firstPassage=false; 
-						self.refresh_realtime_connect();
-					  },
-					  error: function( xhr, textStatus, error) {
-						console.log(xhr.responseText+'  '+xhr.status+'  '+textStatus);
-						console.log('error http1 '+error.message);
-					  }
-					 
-                    }).fail(function(jqXHR, textStatus, error) { showAlert( 'fail error http1 ' +error, textStaus); });
-		} 
-		catch(e) { console.log('catch error http1 ' +e.message);}	
-		*/
-
 	},
 	traitement_realtime:function (msg) {
 		//var self=this;
-		var data=JSON.parse(msg);  	var quake=data.data; //console.log(msg);
+		var data=JSON.parse(msg);  	var quake=data.data; //console.log(JSON.stringify(quake));
 		var quakes=JSON.parse(this._storage.getItem('saveAllJson')); 
 		
 		if(data.data_status=='NEW') { 
@@ -96,6 +62,7 @@ var app = {
 			} 
 			this.insertLine_Plus_Before(quake,quakes[i].id);
 			quakes.splice(i, 0, quake); //add to array
+			ScrollTo('.e_'+quake.id, function() { showMeInstant('.e_'+quake.id); });	
 		}		
 		else if(data.data_status=='UPDATE') { //alert('UPDATE');
 			for(var i in quakes) {
@@ -103,7 +70,7 @@ var app = {
 			}	
 			if(quake.id == this._lastQuake.id) { this._lastQuake=quake;  this.alertScreen();}
 			this.replaceLine_Plus(quake);
-			
+			ScrollTo('.e_'+quake.id, function() { showMeInstant('.e_'+quake.id); });	
 		}
 		else if(data.data_status=='DELETE') { //alert('DEL');
 			for(var i in quakes) {
@@ -113,7 +80,8 @@ var app = {
 			this.removeLine_Plus(quake);
 		}
 		
-		this._storage.setItem('saveAllJson',JSON.stringify(quakes));  
+		this._storage.setItem('saveAllJson',JSON.stringify(quakes)); 
+		this._quakes=quakes;	
 	},
 	refresh_realtime_connect: function() {
 		this.socket = io.connect(EmscConfig.socket_io.url);
@@ -146,10 +114,12 @@ var app = {
 		}
 	},
 	alertShake: function() {
-		navigator.notification.vibrate(2500); navigator.notification.beep(3);
+		var mag=(typeof arguments[0]!='undefined') ? arguments[0] : this._lastQuake.magnitude.mag.toFixed(1);
+		navigator.notification.vibrate(mag * 500); navigator.notification.beep(3);
 	},
 	alertAudio: function() {
-		var music=new AudioAlert({mag:this._lastQuake.magnitude.mag.toFixed(1),region:this._lastQuake.flynn_region,getago:this._lastQuake.time}); 
+		var obj=(typeof arguments[0]!='undefined') ? arguments[0] : {mag:this._lastQuake.magnitude.mag.toFixed(1),region:this._lastQuake.flynn_region,getago:this._lastQuake.time};
+		var music=new AudioAlert(obj); 
 		music.play(); //gaTrack('AudioAlert');
 	},
 	alertScreen: function() {
@@ -226,8 +196,8 @@ var app = {
 	},	
 	map_it: function (id) {
 		if(typeof lmap == 'undefined') { setTimeout("app.map_it("+id+")",200); return; }
-		var obj=this.get_it(id);
-		lmap.setView([obj.location.lat, obj.location.lon], 8); openPopup(id); 
+		var obj=this.get_it(id); //console.log('Obj map it '+JSON.stringify(obj));
+		loadData(); lmap.setView([obj.location.lat, obj.location.lon], 8); openPopup(id); 
 	},
 	
 	initQuestio: function() {
@@ -309,7 +279,8 @@ var app = {
 		return '<li class="resRow e_'+obj.id+'"><a href="javascript:ResRowClick('+obj.id+')" class="handle">' + //'+obj.url + '
 				 '<span class="mag">'+obj.magnitude.mag.toFixed(1)+'</span>' + 
 						'<strong>' + obj.flynn_region + '</strong><span class="resDetail">'+obj.time_str+'</span>'+
-						'<span>Depth: '+obj.depth.depth+' Km</span>'+'</a></li>';
+						'<span>Depth: '+obj.depth.depth+' Km</span>'+
+						'<span class="awaydist">'+distVincenty(obj.location.lat, obj.location.lon, this._coords.lat, this._coords.lon).toFixed(1)+' Km away</span>'+'</a></li>';
 	},
 	createList: function() {
 		for (var i = 0; i<this._quakes.length; i++) { 
@@ -357,6 +328,8 @@ var app = {
 		console.log('Alert '+txt);
 	},
 	initapp: function() {
+		var self=this;
+		localise(function(location) { self.Location(location); });
 		this.getStorage();
 		this.loadStoredSettings();
 		this.registerExtensionKey();
@@ -388,6 +361,8 @@ function AudioAlert() {
 		var my_media = new Media(this.url,
 			function () {
 				console.log("playAudio():Audio Success");
+				my_media.release();
+				my_media = null;
 			},
 			// error callback
 			function (err) {
@@ -480,28 +455,31 @@ function onNotificationGCM(e) {
 		break;
 		
 		case 'message':
+			console.log('notify '+JSON.stringify(e.payload.message_data));
+			
 			// if this flag is set, this notification happened while we were in the foreground.
 			// you might want to play a sound to get the user's attention, throw up a dialog, etc.
-			if (e.foreground) { console.log('notify '+JSON.stringify(e.payload.message_data));
-				app.traitement_realtime(JSON.stringify(e.payload.message_data));
-			
+			if (e.foreground) { 
 				$("#app-status-ul").append('<li>--INLINE NOTIFICATION--' + '</li>');
-
 				// if the notification contains a soundname, play it.
 				//var my_media = new Media(e.payload.soundToPlay/*"/android_asset/www/"+e.soundname*/);
 				//my_media.play();
-				if(e.payload.soundToPlay) {
+				/*if(e.payload.soundToPlay) {
 					var music=new AudioAlert(e.payload.soundToPlay); 
 					music.play();
-				}	
+				}	*/
 			
 			}
 			else {	// otherwise we were launched because the user touched a notification in the notification tray.
-				if (e.coldstart)
-					$("#app-status-ul").append('<li>--COLDSTART NOTIFICATION--' + '</li>');
-				else
-				$("#app-status-ul").append('<li>--BACKGROUND NOTIFICATION--' + '</li>');
+				if (e.coldstart) $("#app-status-ul").append('<li>--COLDSTART NOTIFICATION--' + '</li>');
+				else $("#app-status-ul").append('<li>--BACKGROUND NOTIFICATION--' + '</li>');
 			}
+			
+			
+			var mem=app._settings.audioAlert;
+			if (!e.foreground) app._settings.audioAlert=false;
+			app.traitement_realtime(JSON.stringify(e.payload.message_data));
+			app._settings.audioAlert=mem;
 
 			$("#app-status-ul").append('<li>MESSAGE -> MSG: ' + e.payload.message + '</li>');
 			$("#app-status-ul").append('<li>MESSAGE -> MSGCNT: ' + e.payload.msgcnt + '</li>');
@@ -533,7 +511,7 @@ function onNotificationGCM(e) {
 			//var obj=app.find_it(id);
 			switch($(this).children().attr('class')) {
 				case 'icmap' :
-					$("a[href$='Emap']").trigger('click',function() { app.map_it(id); });  break;
+					$("a[href$='Emap']").trigger('click',function() { app.map_it(id);  });  break;
 				case 'icdetails' :
 					window.location=app.get_it_params(id,'url'); /*obj.url;*/ break;
 				case 'icfelt':
@@ -541,6 +519,7 @@ function onNotificationGCM(e) {
 						break;	
 				case 'iccam':
 					Allcam(); $('#fullcam').fadeIn(1000); $('#fullcam').css('background','rgba(0,0,0,0.8)');//.css('opacity','0.6');
+					//ScrollTo('.e_326593', function() { showMeInstant('.e_326593'); });	
 						break;
 			}
 		});
@@ -628,19 +607,6 @@ function onNotificationGCM(e) {
  }
  
  
-function showAlert (message, title) {
-	$('#wrapper').prepend('<p>'+title+'<br/>'+message+'</p>');
-  return;
-      if (navigator.notification) {
-            navigator.notification.alert(message, null, title, 'OK');
-      } else {
-            alert(title ? (title + ": " + message) : message);
-       }
-}
-
-
-
-
 
 function print_r(theObj){
 	var str='';

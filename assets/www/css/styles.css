@@ -44,13 +44,14 @@ li .action-icon {  position: absolute;  right: 12px;  margin-top: -50px; }
 }
 
 #quakesList	{	position:relative; overflow:hidden; margin:0; padding:0 10px 0 0; list-style:none; border-right:1px solid #4B8CDC; margin-top:5px; }
-LI.resRow{position:relative; background:#fff; padding:3px 0; }
-LI.resRow A.handle{position:relative; display:block; min-height:34px; padding:3px 22px 3px 50px; color:#333; border:1px solid #fff; border-radius:4px; text-decoration:none; line-height:16px; }
+li.resRow{position:relative; background:#fff; padding:3px 0; }
+li.resRow A.handle{position:relative; display:block; min-height:34px; padding:3px 22px 3px 50px; color:#333; border:1px solid #fff; border-radius:4px; text-decoration:none; line-height:16px; }
 .resDetail{display:block; font-size:10px; color:#777;}
 .mag{ font-weight:bold; font-size:1.5em;	position:absolute; display:inline-block; margin-top:-15px; top:50%; left:0; margin-left:5px; width:40px; height:30px; vertical-align:middle; border-right:1px solid #ddd; background-position:center center; background-repeat:no-repeat; }
 
-LI.resRowsel{ background: -webkit-gradient(linear, left top, left bottom, from(#F4F8FE), to(#D3E3F7)); padding:0;   }
-LI.resRowsel .mag { border-color:#4B8CDC; }
+li.resRowsel{ background: -webkit-gradient(linear, left top, left bottom, from(#F4F8FE), to(#D3E3F7)); padding:0;   }
+li.resRowsel .mag { border-color:#4B8CDC; }
+.awaydist{margin-left:20px; color:#606060;}
 
 .strong {vertical-align:middle; /*line-height:30px;*/} 
 
@@ -110,3 +111,15 @@ div.footiconsel { margin:5px auto; height:40px; width:40px; border-radius:5px; b
 #comment {font-family:"trebuchet ms",sans-serif; }
 #comment input[type=button] { width:100px; margin-left:5px; border-radius:5px; box-shadow:1px 1px 1px #D83F3D; background-color:#FAFAFA; border:1px solid #DF3F3F; } #comment input[type=button]:active { background-color:#FCDEDE; box-shadow:1px 1px 1px #D83F3D inset;}
 #comment input, #comment textarea {border:1px solid #F5C5C5; border-radius:5px; box-shadow:1px 1px 2px #C0C0C0 inset; }
+
+#Esetting .wrapper{ background:#fff;}
+#options { padding: 20px 10px 10px 10px;  position:relative;}
+#options fieldset{ border: 1px solid #ddd; border-radius: 5px; margin-bottom:20px; padding: 10px;}
+#options fieldset legend{ font-weight:bold; color: #555; background-color:#eee; border:1px solid #ddd; border-radius: 5px;  font-size: 15px; padding:5px 25px; /*background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#FBFBFB), color-stop(100%,#ECEFF2));*/ }
+#options fieldset fieldset legend { font-weight:bold; background-color:#fff; border:0; padding:5px;}
+#options fieldset input[type=checkbox]{ margin-right:5px;float:left; margin-top: 3px;}
+#options fieldset#format input[type=radio] { margin-left:5px;} #options fieldset#format label { margin-right:15px;}
+.bt-blue{ text-decoration:none; font-weight:bold; color:#fff; border-radius:5px; padding:5px 15px; background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#449def), color-stop(100%,#2f6699)); border:1px solid  hsl(0, 0%, 77%) hsl(0, 0%, 50%) hsl(0, 0%, 50%) hsl(0, 0%, 77%); }
+.bt-blue span,.bt-grey span{ text-shadow: hsla(0, 0%, 30%, 0.5) 1px 1px 0px; color:#fff;} a.bt_blue  {	text-decoration:none;}
+.bt-blue:active {background:#449def;}
+

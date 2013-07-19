@@ -11,12 +11,13 @@
 		
    <!--  <script src="js/jquery.mobile-1.3.1.min.js"></script>  -->
 	<script src="js/jquery-1.8.2.min.js"></script> 
-	<script src="js/config.js"></script> 
+	<script src="js/config.js"></script>
+	<script src="js/distance.js"></script>
 	<script src="js/main.js"></script>
    <!-- <script src="js/iscroll.js"></script> -->
    <script>
 		var console={log:function(txt) { $('.visible .wrapper').prepend('<p>'+txt+'</p>'); }};	
-		var isloaded=[]; isloaded['Emap']=isloaded['camera']=false;
+		var isloaded=[]; isloaded['Emap']=isloaded['camera']=isloaded['Esetting']=false;
 		
 		var  isAndroid = (/android/gi).test(navigator.appVersion);		
 		 if(!isAndroid) window.onload=onDeviceReady;
@@ -25,7 +26,6 @@
 		 function onDeviceReady() { 
 			app.initapp(); 
 			Push();
-			
 		 }
 		
 		document.addEventListener("menubutton", function(e) { console.log('menu button push '); },false);
@@ -57,7 +57,11 @@
 				if(typeof a =='undefined') callback=function() { /*callback.apply(arguments);*/ resetMap(); };
 				else callback=a;
 			}	
-			else if(url=="camera" && !isloaded['camera'] ) { $("head").append('<script src="js/capture.js" />'); isloaded['camera']=true;}
+			else if(url=="camera" && !isloaded['camera'] ) { loadingJS("js/capture.js"); isloaded['camera']=true;}
+			else if(url=="Esetting") { 
+				if(isloaded['Esetting']) callback=loadOptions;
+				else { loadingJS("js/settings.js?"+(new Date()).getTime()); isloaded['Esetting']=true; }
+			}
 		
 			slideTo(url, callback);
 			return false;
@@ -68,25 +72,29 @@
 			$('.gray').removeClass('gray');	$('.footiconsel').removeClass('footiconsel');
 			$(this).children().addClass('footiconsel').children().addClass('gray');
 		});
-		function slideTo(url,callback) {
-			var currentP=$('.visible').attr('id');	 //not('.noslide')
-			//$(".visible > div").animate({"left": "-=1500px"}, 1000,"linear", function(){ $('#'+currentP).removeClass('visible').addClass('hidden');  });
-			$(".visible .header2").animate({"left": "-="+($(window).width())+"px"}, 1000,"linear");
-			$(".visible .wrapper").animate({"left": "-="+($(window).width())+"px"}, 1000,"linear", function(){ $('#'+currentP).removeClass('visible').addClass('hidden');  });
-			$("#"+url).removeClass('hidden').addClass('visible');
-			$("#"+url+" .header2").css('left',($(window).width())+"px").animate({"left": "0px"}, 1000,"linear");
-			$("#"+url+" .wrapper").css('left',($(window).width())+"px").animate({"left": "0px"}, 1000,"linear" ,function(){ callback(); });
-			//$("#"+url+" > div").css('left',($(window).width())+"px").animate({"left": "0px"}, 1000,"linear" ,function(){  console.log('end');  callback();});
-		}
-		function loadCss(url) {
-			if (document.createStyleSheet) document.createStyleSheet(url);
-            else $("head").append($("<link rel='stylesheet' href='"+url+"' type='text/css' media='screen' />"));
-		}
-		function loadingJS(source) { var xjs=document.createElement('script'); xjs.src=source; xjs.type="text/javascript"; document.getElementsByTagName('head')[0].appendChild(xjs); }
-		
-	
  
 	});	
+	
+	
+	function slideTo(url,callback) {
+		var currentP=$('.visible').attr('id');	 //not('.noslide')
+		//$(".visible > div").animate({"left": "-=1500px"}, 1000,"linear", function(){ $('#'+currentP).removeClass('visible').addClass('hidden');  });
+		$(".visible .header2").animate({"left": "-="+($(window).width())+"px"}, 1000,"linear");
+		$(".visible .wrapper").animate({"left": "-="+($(window).width())+"px"}, 1000,"linear", function(){ $('#'+currentP).removeClass('visible').addClass('hidden').trigger('hideIt');  });
+		$("#"+url).removeClass('hidden').addClass('visible');
+		$("#"+url+" .header2").css('left',($(window).width())+"px").animate({"left": "0px"}, 1000,"linear");
+		$("#"+url+" .wrapper").css('left',($(window).width())+"px").animate({"left": "0px"}, 1000,"linear" ,function(){ callback(); });
+		//$("#"+url+" > div").css('left',($(window).width())+"px").animate({"left": "0px"}, 1000,"linear" ,function(){  console.log('end');  callback();});
+	}
+	function loadCss(url) {
+		if (document.createStyleSheet) document.createStyleSheet(url);
+		else $("head").append($("<link rel='stylesheet' href='"+url+"' type='text/css' media='screen' />"));
+	}
+	function loadingJS(source) { var xjs=document.createElement('script'); xjs.src=source; xjs.type="text/javascript"; document.getElementsByTagName('head')[0].appendChild(xjs); }
+	//loadingJS("js/distance.js"); /* load after all loading */
+	function ScrollTo(id,callback) { $('.visible .wrapper').animate({ scrollTop: $(id).offset().top-100 }, 2000,function(){ callback(); }); }
+	function showMeInstant(id) { $(id).css('background-color','#CEE3F6').delay(1000).animate({'opacity':0.4},500,function() {$(this).css('background-color','#FFF').css('opacity',1); }); }
+	
 	</script>
     </head>
 
@@ -103,7 +111,7 @@
 		</div>
 		
 		<div class="wrapper">
-			<div id="app-status-div" style="display:none;">
+			<div id="app-status-div" style="display:block;">
 				<ul id="app-status-ul">	<!-- <li>Cordova PushNotification Plugin Demo</li> --> 	</ul>
 			</div>
 			<ul id="quakesList" class="icon-list"></ul>
@@ -155,8 +163,54 @@
 	<div id="Esetting" class="hidden">
 		<div class="header2"><h2>Settings</h2></div>
 		<div class="wrapper">
+			<!-- <div id="header"><h1>EmscQuake Alert</h1></div> -->
+			<div id="options">
+				<fieldset style="">
+					<legend>Alert Settings</legend>
+						<fieldset>
+						<legend>Audio Alert</legend>
+						<label>
+							<input type="checkbox" id="AudioAlert" checked />Enable Audio Alert.<br>
+						</label>
+						<br/><label class="setting">Magnitude min:</label><input class="fl" id="AudioMagMin" type="number" min="1" max="10" value="1" style="width:40px;" /> <span id="pe"></span>  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <a class="bt-blue fx-stripes test" name="playaudio" id="playaudio" href="#playaudio"><span>Sample Test</span></a>
+						</fieldset>
+						<fieldset>
+						<legend>Shake Alert</legend>
+						<label>
+							<input type="checkbox" id="ShakeAlert" checked />Enable Shake Alert.<br>
+						</label>
+						<br/><label class="setting">Magnitude min:</label><input class="fl" id="ShakeMagMin" type="number" min="1" max="10" value="1" style="width:40px;" /> <span id="pe"></span>  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;	<label class="setting2">Test Shake mag:</label><input class="fl2" id="ShakeMagTest" type="number" min="1" max="10" value="5" style="width:40px;" /> <span id="pe"></span> &nbsp;&nbsp; <a class="bt-blue fx-stripes test" name="shaketest" id="shaketest" href="#shaketest" ><span>Test</span></a>
+						</fieldset>
+						
+						<fieldset style="display:none;">
+						<legend>Screen Alert</legend>
+						<label><input type="checkbox" id="screenAlert" checked />Enable Screen Alert.<br></label><br />
+						<label class="setting">Position:</label><div  class="fl"><select id="screenPos">
+							<option value="TL">Top Left</option><option value="TR">Top Right</option><option value="BL">Bottom Left</option><option value="BR">Bottom Right</option><option value="TC">Center Top</option><option value="BC">Center Bottom</option><option value="LC">Center Left</option><option value="RC">Center Right</option>								
+						</select></div>
+						</fieldset>
+				</fieldset>
+				
+				<fieldset>
+					<legend>Earthquakes Settings</legend>
+					<label class="setting">Magnitude min:&nbsp;</label><input class="fl" id="MagMin" type="number" min="1" max="10" value="1" style="width:40px;" /> <span id="pe"></span>
+				</fieldset>
+				
+				<fieldset id="field_settings" >
+					<legend>Refresh Settings</legend>
+					<label class="setting">Reload every:&nbsp;</label><input class="fl" id="timer" type="number" min="1" max="20" value="5" style="width:40px;" />&nbsp;&nbsp; <span style="vertical-align:middle;"> minutes</span>	
+				</fieldset>
+	
+				<div id="tip"></div>
+			</div>
+			<!-- <div id="action_panel">
+				<a class="bt-blue fx-stripes" name="savebt" id="savebt" href="#savebt"><span>Save</span></a>
+			</div> -->
+			<div id="donate" style="text-align:center;"><a href="http://www.emsc-csem.org/Donate/"><img src="css/img/btn_donate_SM.gif" title="donate" /></a></div>
+			<p style="height:10px;"></p>
 		</div>
-	</div>	
+	</div>
+
 	
 	
 

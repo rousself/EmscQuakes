@@ -67,7 +67,7 @@ function layers(n) {
 }	
 function resetMap() {
 	if (typeof currentPopup !='undefined' &&  currentPopup != null) { currentPopup._close(); delete currentPopup; }
-	lmap.setView([0, 0], 2);
+	loadData(); lmap.setView([0, 0], 2);
 }
 
 function markerById(id) {
@@ -82,6 +82,7 @@ function openPopup(id) {
 function loadData() {
 	if(typeof lmap == 'undefined') { setTimeout("loadData()",200); return; }
 	dataE=app.getGeoJson(); 
+	if(typeof lay !='undefined') { lmap.removeLayer(lay); lay.clearLayers(); }
 	lay=L.geoJson(dataE, {
 		pointToLayer: function (feature, latlng) {
 			var marker=L.circleMarker(latlng, feature.geojsonMarkerOptions); 
