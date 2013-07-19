@@ -92,7 +92,7 @@
 	}
 	function loadingJS(source) { var xjs=document.createElement('script'); xjs.src=source; xjs.type="text/javascript"; document.getElementsByTagName('head')[0].appendChild(xjs); }
 	//loadingJS("js/distance.js"); /* load after all loading */
-	function ScrollTo(id,callback) { $('.visible .wrapper').animate({ scrollTop: $(id).offset().top-100 }, 2000,function(){ callback(); }); }
+	function ScrollTo(id,callback) { if($(id).length>0) { $('.visible .wrapper').animate({ scrollTop: $(id).offset().top-100 }, 2000,function(){ callback(); }); } }
 	function showMeInstant(id) { $(id).css('background-color','#CEE3F6').delay(1000).animate({'opacity':0.4},500,function() {$(this).css('background-color','#FFF').css('opacity',1); }); }
 	
 	</script>
