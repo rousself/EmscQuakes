@@ -111,7 +111,7 @@ public class GCMIntentService extends GCMBaseIntentService {
 		 */
 		String sound = extras.getString("notify_sound");
 		if (sound != null) {
-			//Log.d(TAG, "Notify_sound: " + sound );	
+			Log.d(TAG, "Notify_sound: " + sound );	
 			//mBuilder.setSound(Uri.parse(sound));
 			tryPlayRingtoneUri(Uri.parse(sound));
 		}
