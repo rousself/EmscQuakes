@@ -83,7 +83,7 @@ box-shadow:0 1px 3px rgba(0, 0, 0, 0.5);
 
 .hidden,.hide{display:none;}
 .footer{position:fixed; text-align:center; bottom: 0; height:50px; width:100%; left:0; z-index:20; background: #666666; /* for non-css3 browsers */  background: -webkit-gradient(linear, left top, left bottom, from(#666666), to(#666666), color-stop(.6,#333));  color: #FFFFFF; } 
-.footicon { height:50px; width:50px; margin:auto; /*float:right;/* margin-right: 25%;*/ display:inline-block;  width:33%; }
+.footicon { height:50px; margin:auto; /*float:right;/* margin-right: 25%;*/ display:inline-block;  width:25%; }
 .footicon div, .footiconsel div {width:100%; height:100%; }
 div.footiconsel { margin:5px auto; height:40px; width:40px; border-radius:5px; background: #222; /* for non-css3 browsers */  background: -webkit-gradient(linear, left top, left bottom, from(#888), to(#888), color-stop(.6,#555)); }
 .settingsicon {background:transparent url('img/settings_icon32_r.png') center center no-repeat; }
@@ -96,7 +96,7 @@ div.footiconsel { margin:5px auto; height:40px; width:40px; border-radius:5px; b
  }
 .resRowP {display:none; background: #666666; background: -webkit-gradient(linear, left top, left bottom, from(#666666), to(#666666), color-stop(.6,#333));  } 
 .resRowP div span{width:40px; height:40px; display:inline-block; margin:0 20px; /*border:1px solid red; */}  
-.resRowP div { height:70px; width:80px; display:inline-block; text-align:center; font-weight:bold; color: #FFFFFF;  /*border:1px solid blue;*/}
+.resRowP div { height:70px; width:75px; display:inline-block; text-align:center; font-weight:bold; color: #FFFFFF;  /*border:1px solid blue;*/}
  .icmap {background:transparent url('img/map_it_icon40.png') center center no-repeat;}  .icfelt {background:transparent url('img/form_icon40.png') center center no-repeat;} .icdetails {background:transparent url('img/info_icon40.png') center center no-repeat;}  .iccam {background:transparent url('img/cam_icon40.png') center center no-repeat;}
  
  

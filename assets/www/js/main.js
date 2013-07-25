@@ -157,12 +157,26 @@ var app = {
 		}	
 	},
 	
+	post_serialize: function(obj) {
+		/*var str = [];
+		for(var p in obj) {
+			var k = prefix ? prefix + "[" + p + "]" : p, v = obj[p];
+			str.push(typeof v == "object" ? serialize(v, k) : encodeURIComponent(k) + "=" + encodeURIComponent(v));
+		}
+		return str.join("&");*/
+		if(typeof obj=='string') return obj;
+		var str = [];
+		for(var p in obj)	 str.push(encodeURIComponent(p) + "=" + encodeURIComponent(obj[p]));
+		return str.join("&");
+	},
+
 	post_request:function() {
-		$.support.cors = true;
 		var url= ((arguments[0]) ? arguments[0] : '');
 		if(url=='') return;
 		var data= ((arguments[1]) ? arguments[1] : '');
 		var callback= ((arguments[2]) ? arguments[2] : console.log);
+		
+		$.support.cors = true;
 		$.ajax({
 				  url: url,
 				  type: 'POST',
@@ -175,11 +189,26 @@ var app = {
 						callback(req); 
 				},
 				  error: function( xhr, textStatus, error) {
-							console.log(xhr.responseText+'  '+xhr.status+'  '+textStatus);
+							console.log(xhr.responseText+' ** '+xhr.status+' ** '+textStatus+' **  '+JSON.stringify(error)+' ** '+JSON.stringify(xhr));
 							console.log('error http '+url+' ** '+error.message);
 				}
 			});	
+			
+		/*	var xhr = getXhr();
+			xhr.onreadystatechange = function(){
+				if(xhr.readyState == 4 && (xhr.status == 200 || xhr.status == 0 )){
+					console.log('Receive: '+xhr.responseText);
+					callback(JSON.parse(xhr.responseText)); 
+				}
+				else console.log(xhr.readyState+' ** '+ xhr.status);
+			}
+			xhr.open("POST",url,true);
+			xhr.setRequestHeader('Content-Type','application/x-www-form-urlencoded');
+			xhr.send(this.post_serialize(data));
+			console.log('send POST='+url+' DATA= '+this.post_serialize(data));	*/
 	},
+	
+	
 	
 	
 	
@@ -286,6 +315,7 @@ var app = {
 		for (var i = 0; i<this._quakes.length; i++) { 
 			$('#quakesList').append(this.createLine(this._quakes[i])+this.createLinePlus(this._quakes[i]));
 		}
+		if(useIscroll) loaded($('.wrapper').get(0));
 	},
 	getGeoJson: function() {
 		var Arr=[]; var color="red";
@@ -333,7 +363,10 @@ var app = {
 		this.getStorage();
 		this.loadStoredSettings();
 		this.registerExtensionKey();
-		this._quakes=JSON.parse(this._storage.getItem('saveAllJson'));
+		try {
+			//var e=this._storage.getItem('saveAllJson'); console.log('saveAllJson '+typeof e);  console.log('e= '+e); 
+			this._quakes=JSON.parse(this._storage.getItem('saveAllJson'));    //console.log('quakes= '+this._quakes);
+		} catch(e) { console.log('no quakes in storage'); }	
 		//this.initDb();		//this.getAll();
 		/*if(! this._quakes ) { console.log('nothing in db'); this.refresh();}
 		else this.createList();*/
@@ -496,11 +529,23 @@ function onNotificationGCM(e) {
 	}
 }
 
- 
+function getXhr() {
+	var xhr = null; 
+	if(window.XMLHttpRequest)  xhr = new XMLHttpRequest();  // Firefox et autres
+	else if(window.ActiveXObject){ // Internet Explorer 
+	   try { xhr = new ActiveXObject("Msxml2.XMLHTTP"); }
+	   catch (e) { xhr = new ActiveXObject("Microsoft.XMLHTTP"); }
+	}
+	else {  xhr = false;  /*alert("Ajax Error - HttpRequest unsupported");*/ } // XMLHttpRequest non supporté par le navigateur 
+	return xhr;
+} 
  
  
  function ResRowClick(id) {
-	$('.resRowsel').removeClass('resRowsel'); $('.resRowP').hide();
+
+	if($('.e_'+id).hasClass('resRowsel')) { $('.resRowP').slideUp('slow'); $('.resRowsel').removeClass('resRowsel'); return; }
+	$('.resRowsel').removeClass('resRowsel');  $('.resRowP').hide();
+	
 	$('.e_'+id).addClass('resRowsel');
 	$('.ep_'+id).slideDown('slow',function(){
 		//$('.icmap').parent().click(function(e) { e.stopPropagation(); console.log('map it '+id);});

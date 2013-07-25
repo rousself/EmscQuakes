@@ -2,28 +2,47 @@
 <html>
     <head>
         <title>EMSCQuakes</title>
-        <meta name="viewport" content="width=device-width,initial-scale=1"/>
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=0, minimum-scale=1.0, maximum-scale=1.0">
+		<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+		<!-- 
+		<meta name="viewport" content="width=device-width,initial-scale=1"/> 
+		
+		<meta content="True" name="HandheldFriendly" />
+		<meta content="width=device-width; initial-scale=1.0; maximum-scale=1.0; user-scalable=0;" name="viewport" />
+		<meta name="viewport" content="width=device-width" /> -->
+		
 		<link rel="icon" type="image/png" href="icons/icon16.png"/>
 		
-        <link rel="stylesheet" href="css/styles.css" />
+        <link rel="stylesheet" href="css/styles.css" media="all" />
 		<script src="cordova.js"></script>
 		<script src="PushNotification.js"></script> 
 		
    <!--  <script src="js/jquery.mobile-1.3.1.min.js"></script>  -->
 	<script src="js/jquery-1.8.2.min.js"></script> 
+<script src="js/iscroll-lite.js"></script>
+<!--	<script src="http://lab.cubiq.org/iscroll/src/iscroll.js"></script> -->
 	<script src="js/config.js"></script>
 	<script src="js/distance.js"></script>
 	<script src="js/main.js"></script>
    <!-- <script src="js/iscroll.js"></script> -->
    <script>
-		var console={log:function(txt) { $('.visible .wrapper').prepend('<p>'+txt+'</p>'); }};	
+		var console={log:function(txt) { /*$('.visible .wrapper').prepend('<p>'+txt+'</p>');*/ /* $('#home').prepend('<p>'+txt+'</p>');*/ }};	
 		var isloaded=[]; isloaded['Emap']=isloaded['camera']=isloaded['Esetting']=false;
 		
 		var  isAndroid = (/android/gi).test(navigator.appVersion);		
 		 if(!isAndroid) window.onload=onDeviceReady;
 		
+		var useIscroll=false;
 		document.addEventListener("deviceready", onDeviceReady, true);
 		 function onDeviceReady() { 
+			try {
+				if(device.platform.toLowerCase()=='android' && parseFloat(device.version) < 3) {
+					document.addEventListener('touchmove', function (e) { e.preventDefault(); }, false);
+					loadingJS("js/iscroll-lite.js"); useIscroll=true;
+				}	
+			} catch(e) {}
+			//try { console.log('device: '+JSON.stringify(device)); console.log(parseFloat(device.version)); } catch(e) {}
 			app.initapp(); 
 			Push();
 		 }
@@ -41,10 +60,12 @@
 		 },false);
 		 
 		 	
-		
      $(document).ready(function(){
-		//$("#header").append('<a href="home" id="returnB" class="header-button button slide hidden">Back</a>');
+		//var overflow-scrolling = typeof($("body")[0].style["-webkit-overflow-scrolling"]) !== "undefined";
+		//console.log('overflow: '+typeof($("body")[0].style["-webkit-overflow-scrolling"]));
 		
+		//$("#header").append('<a href="home" id="returnB" class="header-button button slide hidden">Back</a>');
+		//$('.footicon').css('width',$(window).width()/4);
 		$(".slide").click(function(e,a){  
 			
 			var callback=function() { };
@@ -75,7 +96,8 @@
  
 	});	
 	
-	
+
+
 	function slideTo(url,callback) {
 		var currentP=$('.visible').attr('id');	 //not('.noslide')
 		//$(".visible > div").animate({"left": "-=1500px"}, 1000,"linear", function(){ $('#'+currentP).removeClass('visible').addClass('hidden');  });
@@ -85,6 +107,7 @@
 		$("#"+url+" .header2").css('left',($(window).width())+"px").animate({"left": "0px"}, 1000,"linear");
 		$("#"+url+" .wrapper").css('left',($(window).width())+"px").animate({"left": "0px"}, 1000,"linear" ,function(){ callback(); });
 		//$("#"+url+" > div").css('left',($(window).width())+"px").animate({"left": "0px"}, 1000,"linear" ,function(){  console.log('end');  callback();});
+		if(useIscroll) loaded($("#"+url+" .wrapper").get(0));
 	}
 	function loadCss(url) {
 		if (document.createStyleSheet) document.createStyleSheet(url);
@@ -95,6 +118,11 @@
 	function ScrollTo(id,callback) { if($(id).length>0) { $('.visible .wrapper').animate({ scrollTop: $(id).offset().top-100 }, 2000,function(){ callback(); }); } }
 	function showMeInstant(id) { $(id).css('background-color','#CEE3F6').delay(1000).animate({'opacity':0.4},500,function() {$(this).css('background-color','#FFF').css('opacity',1); }); }
 	
+	var myScroll; var myScarr=[]; 
+	function loaded(obj) {
+		if(jQuery.inArray(obj, myScarr)<0) { myScroll=new iScroll(obj); myScarr.push(obj); }
+	}
+
 	</script>
     </head>
 
@@ -110,10 +138,7 @@
 			<!-- <a href="camera" class="change-pic-btn slide" > Cam </a> -->
 		</div>
 		
-		<div class="wrapper">
-			<div id="app-status-div" style="display:block;">
-				<ul id="app-status-ul">	<!-- <li>Cordova PushNotification Plugin Demo</li> --> 	</ul>
-			</div>
+		<div class="wrapper" id="wrapper0">
 			<ul id="quakesList" class="icon-list"></ul>
 		</div>
 	</div>
@@ -215,6 +240,8 @@
 	
 
 	<div id="busy"/>Loading...</div>
+	<div id="app-status-div" style="display:none;"><ul id="app-status-ul"></ul></div> 
+	
 
 	<div id="footer" class="footer">
 		<a href="Emap" class="footicon slide"><div><div class="mapicon"></div></div></a> 
